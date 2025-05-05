@@ -4,17 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Neuroconciencia IA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #141e30, #243b55);
-      color: white;
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #ffffff);
+      color: #333;
     }
 
     header {
-      background-color: rgba(0, 0, 0, 0.6);
-      padding: 20px 40px;
+      background-color: #283593;
+      color: white;
+      padding: 1.5rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -46,7 +48,7 @@
     }
 
     nav a:hover {
-      color: #00f2fe;
+      color: #80deea;
     }
 
     .hero {
@@ -57,6 +59,7 @@
     .hero h1 {
       font-size: 48px;
       margin-bottom: 10px;
+      color: #1a237e;
     }
 
     .hero p {
@@ -80,23 +83,23 @@
     }
 
     .btn-explorar {
-      background-color: #a334f5;
+      background-color: #0077B5;
     }
 
     .btn-explorar:hover {
-      background-color: #8624cc;
+      background-color: #005f91;
     }
 
     .btn-demo {
-      background-color: #6f87d8;
+      background-color: #5c6bc0;
     }
 
     .btn-demo:hover {
-      background-color: #4c66b3;
+      background-color: #3f51b5;
     }
 
     .info-section {
-      background-color: rgba(255, 255, 255, 0.05);
+      background-color: #e8eaf6;
       padding: 40px 20px;
       text-align: center;
     }
@@ -104,6 +107,7 @@
     .info-section h2 {
       font-size: 32px;
       margin-bottom: 10px;
+      color: #1a237e;
     }
 
     .info-section p {
@@ -112,12 +116,70 @@
       margin: auto;
     }
 
-    footer {
-      background-color: rgba(0, 0, 0, 0.7);
+    .section {
+      max-width: 1200px;
+      margin: auto;
+      padding: 3rem 1rem;
+    }
+
+    .section h2 {
       text-align: center;
-      padding: 20px;
-      font-size: 14px;
-      color: #aaa;
+      font-size: 2rem;
+      color: #283593;
+      margin-bottom: 2rem;
+    }
+
+    .team {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .team-item {
+      background: #ffffff;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .team-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .team-item h3 {
+      margin-top: 0;
+      color: #1a237e;
+    }
+
+    .team-item p {
+      font-size: 1rem;
+      margin: 1rem 0;
+    }
+
+    .linkedin {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 10px 20px;
+      background-color: #0077B5;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 50px;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .linkedin:hover {
+      background-color: #005f91;
+      transform: scale(1.05);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background-color: #e8eaf6;
+      color: #555;
     }
   </style>
 </head>
@@ -126,14 +188,16 @@
   <header>
     <div class="logo">
       <span>🧠</span>
-      Neuroconciencia-IA
+      Neuroconciencia IA
     </div>
     <nav>
       <a href="#">Inicio</a>
       <a href="#">¿Qué es?</a>
       <a href="#">Artículos</a>
       <a href="#">Demostración</a>
-      <a href="#">Contacto</a>
+      <a href="https://wa.me/573001467346?text=Hola,%20me%20interesa%20más%20información%20sobre%20las%20neurociencias:%0A🧩%20Neurociencia%20Cognitiva%3A%20procesos%20mentales%20como%20la%20percepción,%20memoria%20y%20toma%20de%20decisiones.%0A🔁%20Neurociencia%20Conductual%3A%20cómo%20el%20cerebro%20genera%20y%20modifica%20el%20comportamiento.%0A🖥️%20Neurociencia%20Computacional%3A%20modelos%20para%20simular%20el%20cerebro.%0A🤝%20Neurociencia%20Social%3A%20procesamiento%20de%20emociones%20y%20empatía." target="_blank">
+        Contacto
+      </a>
     </nav>
   </header>
 
@@ -149,6 +213,25 @@
   <section class="info-section">
     <h2>¿Qué es Neuroconciencia IA?</h2>
     <p>Un modelo pionero que fusiona neurociencia, inteligencia artificial y frecuencias cuánticas para optimizar tu estado mental en tiempo real.</p>
+  </section>
+
+  <section class="section">
+    <h2>Conoce a nuestro equipo</h2>
+    <div class="team">
+
+      <div class="team-item">
+        <h3>Elizabeth Artunduaga Jaramillo</h3>
+        <p>Ingeniera en sistemas de Salazar y Herrera con experiencia en creación de páginas web y análisis de datos.</p>
+        <a href="https://www.linkedin.com/in/elizartund/" target="_blank" class="linkedin">🔗 Ver LinkedIn</a>
+      </div>
+
+      <div class="team-item">
+        <h3>Juan Carlos Artunduaga Jaramillo</h3>
+        <p>Tecnólogo en desarrollo de software del Pascual Bravo y técnico en sistemas de información del Cesde.</p>
+        <a href="https://www.linkedin.com/in/juan-inteligenciaartificial/" target="_blank" class="linkedin">🔗 Ver LinkedIn</a>
+      </div>
+
+    </div>
   </section>
 
   <footer>
