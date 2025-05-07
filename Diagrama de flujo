@@ -1,0 +1,6 @@
+flowchart TD
+    A[1. Crear Datos EEG Ficticios\n- Simular emociones\n- Delta, Theta, Alpha...\n- Guardar en CSV] --> B[2. Preprocesar Datos\n- Escalar valores\n- Codificar emociones\n- Dividir en entrenamiento y prueba]
+    B --> C[3. Entrenar Modelo IA\n- Red neuronal\n- Pérdida y precisión\n- Parada temprana\n- Guardar resultados]
+    C --> D[4. Interactuar con Usuario\n- ¿Cómo te sientes?\n- Seleccionar emoción\n- Extraer frecuencias EEG]
+    D --> E[5. Generar Audio Personal\n- Modulación de frecuencia\n- Portadora audible\n- Guardar archivo WAV]
+    E --> F[6. Resultados Visuales\n- Gráficos de entrenam.\n- Matriz de confusión\n- Datos clasificados]
