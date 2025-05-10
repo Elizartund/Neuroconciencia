@@ -1,0 +1,286 @@
+Módulo 1 : Genera datos EEG sintéticos.
+Este módulo genera los datos EEG sintéticos y los guarda en un archivo CSV
+import pandas as pd
+import numpy as np
+
+emociones = {
+    "Ansiedad": {"Delta": (0.5, 2.0), "Theta": (4.0, 6.0), "Alpha": (8.0, 10.0),
+                 "Beta": (20.0, 30.0), "Gamma": (30.0, 35.0), "Frecuencia_Influyente": (22.0, 28.0), "Portadora": 432},
+    "Euforia": {"Delta": (0.5, 1.5), "Theta": (4.0, 5.5), "Alpha": (9.0, 12.0),
+                "Beta": (15.0, 25.0), "Gamma": (35.0, 45.0), "Frecuencia_Influyente": (38.0, 42.0), "Portadora": 528},
+    "Concentración": {"Delta": (0.5, 1.0), "Theta": (4.0, 5.0), "Alpha": (8.0, 10.0),
+                      "Beta": (15.0, 25.0), "Gamma": (35.0, 40.0), "Frecuencia_Influyente": (18.0, 22.0), "Portadora": 300},
+    "Felicidad": {"Delta": (0.5, 2.0), "Theta": (4.0, 6.0), "Alpha": (9.0, 12.0),
+                  "Beta": (12.0, 20.0), "Gamma": (30.0, 40.0), "Frecuencia_Influyente": (9.0, 11.0), "Portadora": 200},
+    "Meditación": {"Delta": (1.0, 4.0), "Theta": (5.0, 8.0), "Alpha": (9.0, 12.0),
+                   "Beta": (12.0, 15.0), "Gamma": (30.0, 35.0), "Frecuencia_Influyente": (5.0, 7.0), "Portadora": 174},
+}
+
+def generar_datos_eeg(n_muestras=10000):
+    np.random.seed(42)
+    datos = []
+    nombres_emociones = list(emociones.keys())
+    pesos = [0.35, 0.15, 0.15, 0.25, 0.1]
+    for _ in range(n_muestras):
+        emocion = np.random.choice(nombres_emociones, p=pesos)
+        frecuencias = emociones[emocion]
+        ruido_base = np.random.normal(0, 0.1)
+        muestra = {
+            "Emocion": emocion,
+            "Delta": np.clip(np.random.normal(loc=np.mean(frecuencias["Delta"]), scale=0.2) + ruido_base * 0.1, *frecuencias["Delta"]),
+            "Theta": np.clip(np.random.normal(loc=np.mean(frecuencias["Theta"]), scale=0.3) + ruido_base * 0.2, *frecuencias["Theta"]),
+            "Alpha": np.clip(np.random.normal(loc=np.mean(frecuencias["Alpha"]), scale=0.4) + ruido_base * 0.3, *frecuencias["Alpha"]),
+            "Beta": np.clip(np.random.normal(loc=np.mean(frecuencias["Beta"]), scale=0.5) + ruido_base * 0.4, *frecuencias["Beta"]),
+            "Gamma": np.clip(np.random.normal(loc=np.mean(frecuencias["Gamma"]), scale=0.6) + ruido_base * 0.5, *frecuencias["Gamma"]),
+            "Ruido": np.random.normal(0, 0.1),
+        }
+        if np.random.random() < 0.15:
+            desplazamiento = np.random.normal(0, 0.2)
+            for banda in ["Delta", "Theta", "Alpha", "Beta", "Gamma"]:
+                muestra[banda] += desplazamiento
+                muestra[banda] = np.clip(muestra[banda], *frecuencias[banda])
+        if np.random.random() < 0.2:
+            banda = np.random.choice(["Delta", "Theta", "Alpha", "Beta", "Gamma"])
+            muestra[banda] += np.random.normal(0, 0.4)
+            muestra[banda] = np.clip(muestra[banda], *frecuencias[banda])
+        datos.append(muestra)
+    df = pd.DataFrame(datos)
+    df.to_csv("datos_eeg_sinteticos.csv", index=False)
+    return df
+
+if __name__ == "__main__":
+    print("Creando datos EEG sintéticos...")
+    datos = generar_datos_eeg(n_muestras=10000)
+Módulo 2 : Preprocesa los datos y los aumenta para mejorar el entrenamiento.
+Este módulo carga los datos generados, los escala y aumenta para mejorar el entrenamiento del modelo.
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+
+def aumentar_datos(X, y, factor=0.3):
+    X_nuevo = X.copy()
+    y_nuevo = y.copy()
+    for _ in range(int(len(X) * factor)):
+        idx = np.random.randint(0, len(X))
+        ruido = np.random.normal(0, 0.08, X.shape[1])
+        X_nuevo = np.vstack([X_nuevo, X[idx] + ruido])
+        y_nuevo = np.append(y_nuevo, y[idx])
+    return X_nuevo, y_nuevo
+
+if __name__ == "__main__":
+
+    datos = pd.read_csv("datos_eeg_sinteticos.csv")
+    escalador = MinMaxScaler()
+    columnas_frec = ["Delta", "Theta", "Alpha", "Beta", "Gamma", "Ruido"]
+    datos_escalados = datos.copy()
+    datos_escalados[columnas_frec] = escalador.fit_transform(datos[columnas_frec])
+    codificador = LabelEncoder()
+    datos_escalados["Emocion"] = codificador.fit_transform(datos["Emocion"])
+    X = datos_escalados[columnas_frec].values
+    y = datos_escalados["Emocion"].values
+
+
+    print("Aumentando datos para que el modelo sea más robusto...")
+    X, y = aumentar_datos(X, y, factor=0.3)
+
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    print("Datos preprocesados y aumentados.")
+Módulo 3 : Entrena el modelo de red neuronal, evalúa su rendimiento y guarda los resultados.
+Este módulo entrena el modelo de red neuronal y guarda los gráficos y métricas.
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import classification_report, confusion_matrix
+
+def entrenar_modelo(X_train, y_train, X_test, y_test, codificador):
+    modelo = Sequential([
+        Dense(32, activation='relu', input_shape=(X_train.shape[1],), kernel_regularizer=l2(0.005)),
+        Dropout(0.3),
+        Dense(16, activation='relu', kernel_regularizer=l2(0.005)),
+        Dropout(0.3),
+        Dense(len(codificador.classes_), activation='softmax'),
+    ])
+    optimizador = Adam(learning_rate=0.0003)
+    modelo.compile(optimizer=optimizador, loss='categorical_crossentropy', metrics=['accuracy'])
+    parada_temprana = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True, min_delta=0.002)
+    historia = modelo.fit(
+        X_train, y_train,
+        validation_data=(X_test, y_test),
+        epochs=20,
+        batch_size=128,
+        verbose=1,
+        callbacks=[parada_temprana]
+    )
+
+
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(historia.history['loss'], label='Pérdida entreno')
+    plt.plot(historia.history['val_loss'], label='Pérdida validación')
+    plt.title('Pérdida durante entrenamiento')
+    plt.xlabel('Épocas')
+    plt.ylabel('Pérdida')
+    plt.legend()
+    plt.subplot(1, 2, 2)
+    plt.plot(historia.history['accuracy'], label='Precisión entreno')
+    plt.plot(historia.history['val_accuracy'], label='Precisión validación')
+    plt.title('Precisión durante entrenamiento')
+    plt.xlabel('Épocas')
+    plt.ylabel('Precisión')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig('graficos_entrenamiento.png')
+    plt.close()
+
+
+    y_pred = modelo.predict(X_test)
+    y_pred_clases = np.argmax(y_pred, axis=1)
+    y_verdadero = np.argmax(y_test, axis=1)
+    matriz = confusion_matrix(y_verdadero, y_pred_clases)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(matriz, annot=True, fmt='d', cmap='Blues',
+                xticklabels=codificador.classes_,
+                yticklabels=codificador.classes_)
+    plt.title('Matriz de Confusión')
+    plt.xlabel('Predicho')
+    plt.ylabel('Verdadero')
+    plt.savefig('matriz_confusion.png')
+    plt.close()
+
+
+    print("\nReporte de clasificación:")
+    print(classification_report(y_verdadero, y_pred_clases, target_names=codificador.classes_))
+
+
+    modelo.save("modelo_entrenado.h5")
+    print("Modelo entrenado guardado como 'modelo_entrenado.h5'.")
+
+    return modelo
+
+if __name__ == "__main__":
+
+    datos = pd.read_csv("datos_eeg_sinteticos.csv")
+    escalador = MinMaxScaler()
+    columnas_frec = ["Delta", "Theta", "Alpha", "Beta", "Gamma", "Ruido"]
+    datos_escalados = datos.copy()
+    datos_escalados[columnas_frec] = escalador.fit_transform(datos[columnas_frec])
+    codificador = LabelEncoder()
+    datos_escalados["Emocion"] = codificador.fit_transform(datos["Emocion"])
+    X = datos_escalados[columnas_frec].values
+    y = datos_escalados["Emocion"].values
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    y_train_cat = to_categorical(y_train, num_classes=len(codificador.classes_))
+    y_test_cat = to_categorical(y_test, num_classes=len(codificador.classes_))
+
+
+Módulo 4 : Interactúa con el usuario, extrae frecuencias validadas por el modelo y genera un archivo de audio personalizado.
+import numpy as np
+import scipy.io.wavfile as wavfile
+from datetime import datetime
+import os
+import time
+
+def extraer_frecuencias_red(estado, datos_entrenamiento, modelo, escalador, codificador, n_candidatos=10):
+    np.random.seed(int(time.time()))
+    datos_estado = datos_entrenamiento[datos_entrenamiento["Emocion"] == estado]
+    if len(datos_estado) == 0:
+        raise ValueError(f"No hay datos para {estado}")
+    candidatos = datos_estado.sample(n=min(n_candidatos, len(datos_estado)), random_state=None)
+    frecuencias = emociones[estado]
+    mejor_candidato = None
+    mejor_prob = 0
+    for _, candidato in candidatos.iterrows():
+        frecs = {
+            "Delta": np.clip(candidato["Delta"] + np.random.normal(0, 0.1), *frecuencias["Delta"]),
+            "Theta": np.clip(candidato["Theta"] + np.random.normal(0, 0.15), *frecuencias["Theta"]),
+            "Alpha": np.clip(candidato["Alpha"] + np.random.normal(0, 0.2), *frecuencias["Alpha"]),
+            "Beta": np.clip(candidato["Beta"] + np.random.normal(0, 0.25), *frecuencias["Beta"]),
+            "Gamma": np.clip(candidato["Gamma"] + np.random.normal(0, 0.3), *frecuencias["Gamma"]),
+            "Ruido": np.random.normal(0, 0.1),
+        }
+        X_candidato = np.array([[frecs["Delta"], frecs["Theta"], frecs["Alpha"], frecs["Beta"], frecs["Gamma"], frecs["Ruido"]]])
+        X_candidato_escalado = escalador.transform(X_candidato)
+        probs = modelo.predict(X_candidato_escalado, verbose=0)[0]
+        estado_idx = codificador.transform([estado])[0]
+        prob_estado = probs[estado_idx]
+        if prob_estado > mejor_prob:
+            mejor_prob = prob_estado
+            mejor_candidato = frecs
+    frec_influyente = np.clip(np.random.normal(loc=mejor_candidato["Theta"], scale=0.3), *frecuencias["Frecuencia_Influyente"])
+    return [mejor_candidato["Delta"], mejor_candidato["Theta"], mejor_candidato["Alpha"], mejor_candidato["Beta"], mejor_candidato["Gamma"], frec_influyente]
+
+def generar_audio(frecuencias, influyente, portadora, nombre_archivo, duracion=300, fs=44100):
+    np.random.seed(int(time.time()))
+    t = np.linspace(0, duracion, int(fs * duracion))
+    audio = np.zeros_like(t)
+    portadora_var = portadora + np.random.uniform(-10, 10)
+    mod_depth = np.random.uniform(0.7, 0.9)
+    for f in frecuencias:
+        amplitud = np.random.uniform(0.15, 0.25)
+        audio += amplitud * np.sin(2 * np.pi * portadora_var * t) * (1 + mod_depth * np.sin(2 * np.pi * f * t))
+    amplitud_inf = np.random.uniform(0.4, 0.6)
+    audio += amplitud_inf * np.sin(2 * np.pi * portadora_var * t) * (1 + mod_depth * np.sin(2 * np.pi * influyente * t))
+    audio = audio / np.max(np.abs(audio))
+    audio = (audio * 32767).astype(np.int16)
+    wavfile.write(nombre_archivo, fs, audio)
+    print(f"Audio guardado como {nombre_archivo}")
+
+def obtener_estado_usuario():
+    print("¿Cómo te sientes hoy? Elige una opción:")
+    for i, emocion in enumerate(emociones.keys(), 1):
+        print(f"{i}. {emocion}")
+    while True:
+        try:
+            opcion = int(input("Ingresa el número de tu estado (1-5): ")) - 1
+            if 0 <= opcion < len(emociones):
+                return list(emociones.keys())[opcion]
+            print("¡Eso no es válido! Intenta otra vez.")
+        except ValueError:
+            print("Por favor, ingresa un número.")
+
+if __name__ == "__main__":
+
+    if not os.path.exists("modelo_entrenado.h5"):
+        raise FileNotFoundError("El archivo 'modelo_entrenado.h5' no existe. Por favor, entrena el modelo primero.")
+
+
+    datos = pd.read_csv("datos_eeg_sinteticos.csv")
+    escalador = MinMaxScaler()
+    columnas_frec = ["Delta", "Theta", "Alpha", "Beta", "Gamma", "Ruido"]
+    datos_escalados = datos.copy()
+    datos_escalados[columnas_frec] = escalador.fit_transform(datos[columnas_frec])
+    codificador = LabelEncoder()
+    datos_escalados["Emocion"] = codificador.fit_transform(datos["Emocion"])
+    X = datos_escalados[columnas_frec].values
+    y = datos_escalados["Emocion"].values
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    y_train_cat = to_categorical(y_train, num_classes=len(codificador.classes_))
+    y_test_cat = to_categorical(y_test, num_classes=len(codificador.classes_))
+
+    from tensorflow.keras.models import load_model
+    modelo = load_model("modelo_entrenado.h5")
+
+
+    estado = obtener_estado_usuario()
+    print(f"\nHas seleccionado: {estado}")
+    frecs_dinamicas = extraer_frecuencias_red(estado, datos, modelo, escalador, codificador)
+    portadora = emociones[estado]["Portadora"]
+    nombres_bandas = ["Delta", "Theta", "Alpha", "Beta", "Gamma", "Influyente"]
+    print("Frecuencias EEG sugeridas:")
+    for banda, freq in zip(nombres_bandas, frecs_dinamicas):
+        print(f"  {banda}: {freq:.1f} Hz")
+    print(f"Frecuencia portadora audible: ~{portadora:.1f} Hz (varía un poco cada vez)")
+
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_audio = f"audio_{estado.lower()}_{timestamp}.wav"
+    generar_audio(frecs_dinamicas[:-1], frecs_dinamicas[-1], portadora, nombre_audio)
+    print(f"¡Listo! Escucha el audio único en {nombre_audio}.")
+    modelo = entrenar_modelo(X_train, y_train_cat, X_test, y_test_cat, codificador)
